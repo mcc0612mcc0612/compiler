@@ -13,7 +13,7 @@ int pos_end;
 
 void pass_node(char *text){
      yylval.node = new_syntax_tree_node(text);
-     //printf("%s",text);
+     //printf("%s\n",text);
 }
 
 /*****************声明和选项设置  end*****************/
@@ -55,14 +55,13 @@ float {pos_start = pos_end; pos_end += 5; pass_node(yytext);return FLOAT;}
 [a-zA-Z]+ {pos_start = pos_end; pos_end += yyleng; pass_node(yytext);return IDENTIFIER;} /*ID*/
 [0-9]+ {pos_start = pos_end; pos_end += yyleng; pass_node(yytext);return INTEGER;}
 [0-9]*\.[0-9]+|[0-9]+\.  {pos_start = pos_end; pos_end += yyleng; pass_node(yytext);return FLOATPOINT;}/*优先匹配并前的串*/
-\[\] {pos_start = pos_end; pos_end += 2; pass_node(yytext);return ARRAY;}
 [\n] {lines++; pos_start = 1;pos_end = 1;//\n or \r
 //printf("this is a newline\n");
 }
 [ \t] {pos_start = pos_end;pos_end++;}
-\/\*([\x00-\xFF])*?\*\/ {
-     printf("长度%d",yyleng);
-     printf("%c",yytext[136]);
+[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/] {//https://c.dovov.com/4151/%E4%BD%BF%E7%94%A8flex%E6%A3%80%E6%B5%8B%E5%92%8C%E8%B7%B3%E8%BF%87%E8%A1%8C%E6%B3%A8%E9%87%8A.html
+     //printf("长度%d",yyleng);
+     //printf("%s\n",yytext);
 int lines_incr = comment_lines();
 if(lines_incr == 0){
      pos_start = pos_end; pos_end += yyleng;
@@ -80,7 +79,7 @@ else{
 
 int comment_lines(){
      int num = 0;
-     for(int i =0 ;yytext[i]<yyleng ;i++){
+     for(int i =0 ;i<yyleng ;i++){
           if(yytext[i] == '\n')
                num++;
      }

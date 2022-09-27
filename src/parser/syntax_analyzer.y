@@ -59,7 +59,6 @@ syntax_tree_node *node(const char *node_name, int children_num, ...);
 %token <node> RPARENTHESE
 %token <node> LBRACKET
 %token <node> RBRACKET
-%token <node> ARRAY
 %token <node> LBRACE
 %token <node> RBRACE
 %token <node> ELSE
@@ -149,15 +148,15 @@ params : param-list{
 };
 param-list : param-list COMMA param{
     $$ = node("param-list",3,$1,$2,$3);
-};
-  | param{
+}
+| param{
     $$ = node("param-list",1,$1);
 };
 param : type-specifier IDENTIFIER{
     $$ = node("param",2,$1,$2);
-};
-  | type-specifier IDENTIFIER ARRAY{
-    $$ = node("param",3,$1,$2,$3);
+}
+| type-specifier IDENTIFIER LBRACKET RBRACKET {
+    $$ = node("param",4,$1,$2,$3,$4);
 };
 compound-stmt : LBRACE local-declarations statement-list RBRACE{
     $$ = node("compound-stmt",4,$1,$2,$3,$4);
@@ -189,11 +188,11 @@ expression-stmt : expression SEMICOLON{
     $$ = node("expression-stmt",1,$1);
 };
 selection-stmt : IF LPARENTHESE expression RPARENTHESE statement{
-    $$ =node("selecton-stmt",5,$1,$2,$3,$4,$5);
+    $$ =node("selection-stmt",5,$1,$2,$3,$4,$5);
 }|IF LPARENTHESE expression RPARENTHESE statement{
-    $$ =node("selecton-stmt",5,$1,$2,$3,$4,$5);
+    $$ =node("selection-stmt",5,$1,$2,$3,$4,$5);
 } | IF LPARENTHESE expression RPARENTHESE statement ELSE statement{
-    $$ =node("selecton-stmt",7,$1,$2,$3,$4,$5,$6,$7);
+    $$ =node("selection-stmt",7,$1,$2,$3,$4,$5,$6,$7);
 };
 iteration-stmt : WHILE LPARENTHESE expression RPARENTHESE statement{
      $$ =node("iteration-stmt",5,$1,$2,$3,$4,$5);
