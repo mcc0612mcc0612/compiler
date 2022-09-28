@@ -41,6 +41,7 @@ syntax_tree_node *node(const char *node_name, int children_num, ...);
 }
 
 /* TODO: Your tokens here. */
+/*没有array*/
 %token <node> ERROR
 %token <node> ADD
 %token <node> SUB
