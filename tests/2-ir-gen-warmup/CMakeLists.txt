@@ -16,14 +16,14 @@ target_link_libraries(
      assign_generator    
      IR_lib
  )
-# add_executable(
-#     stu_fun_generator
-#     stu_cpp/fun_generator.cpp
-# )
-# target_link_libraries(
-#     stu_fun_generator    
-#     IR_lib
-# )
+ add_executable(
+     fun_generator
+     stu_cpp/fun_generator.cpp
+ )
+ target_link_libraries(
+     fun_generator    
+     IR_lib
+ )
 # add_executable(
 #     stu_if_generator
 #     stu_cpp/if_generator.cpp
