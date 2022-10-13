@@ -9,7 +9,7 @@
 #include <memory>
 
 #ifdef DEBUG // 用于调试信息,大家可以在编译过程中通过" -DDEBUG"来开启这一选项
-#define DEBUG_OUTPUT std::cout << __LINE__ << std::endl; // 输出行号的简单示例
+#define DEBUG_OUTPUT std::cout <<  << std::endl; // 输出行号的简单示例
 #else
 #define DEBUG_OUTPUT
 #endif
@@ -24,7 +24,7 @@ int main() {
   Type *Int32Type = Type::get_int32_type(module);
 
   // 全局数组,x,y
-  auto *arrayType = ArrayType::get(Int32Type, 1);
+  auto arrayType = ArrayType::get(Int32Type, 1);
   auto initializer = ConstantZero::get(Int32Type, module);
   auto x = GlobalVariable::create("x", module, arrayType, false, initializer);// 参数解释：  名字name，所属module，全局变量类型type，
   auto y = GlobalVariable::create("y", module, arrayType, false, initializer);//          是否是常量定义（cminus中没有常量概念，应全都是false），初始化常量(ConstantZero类)
