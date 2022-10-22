@@ -30,7 +30,6 @@ int main() {
 
   auto bb = BasicBlock::create(module, "entry", mainFun);
 
-  // BasicBlock的名字在生成中无所谓,但是可以方便阅读
   builder->set_insert_point(bb);
 
   auto *arraytype = ArrayType::get(Int32Type, 10);
@@ -38,7 +37,7 @@ int main() {
   auto a_alloca = builder->create_alloca(arraytype);//创建int a[10]
 
 
-  auto x0GEP = builder->create_gep(a_alloca, {CONST_INT(0), CONST_INT(0)});  // GEP: 这里为什么是{0, 0}呢? (实验报告相关)
+  auto x0GEP = builder->create_gep(a_alloca, {CONST_INT(0), CONST_INT(0)});  
   builder->create_store(CONST_INT(10), x0GEP);//  a[0] = 10
 
   auto x0load =builder->create_load(x0GEP);//取出x0的值

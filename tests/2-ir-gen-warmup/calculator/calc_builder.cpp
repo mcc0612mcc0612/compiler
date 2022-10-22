@@ -1,4 +1,6 @@
 #include "calc_builder.hpp"
+#include <iostream>
+using namespace std;
 std::unique_ptr<Module>
 CalcBuilder::build(CalcAST &ast) {
     module = std::unique_ptr<Module>(new Module("Cminus code"));
@@ -55,9 +57,11 @@ void CalcBuilder::visit(CalcASTTerm &node) {
         auto r_val = val;
         switch (node.op) {
         case OP_MUL:
+            cout << "*" << endl;
             val = builder->create_imul(l_val, r_val);
             break;
         case OP_DIV:
+            cout << "/" << endl;
             val = builder->create_isdiv(l_val, r_val);
             break;
         }

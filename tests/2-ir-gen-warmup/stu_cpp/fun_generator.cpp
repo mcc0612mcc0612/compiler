@@ -33,7 +33,7 @@ int main() {
   auto calleeFun = Function::create(calleeFunTy,
                                  "callee", module);
 
-  auto bb = BasicBlock::create(module, "entry", calleeFun);
+  auto bb = BasicBlock::create(module, "callee", calleeFun);
   builder->set_insert_point(bb); 
 
   auto retAlloca = builder->create_alloca(Int32Type);   // 在内存中分配返回值的位置

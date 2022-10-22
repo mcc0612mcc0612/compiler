@@ -113,7 +113,6 @@ void CalcASTFactor::accept(CalcASTVisitor &visitor) {
         expr->accept(visitor);
         return;
     }
-
     auto num =
         dynamic_cast<CalcASTNum *>(this);
     if (num) {

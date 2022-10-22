@@ -24,19 +24,19 @@ target_link_libraries(
      fun_generator    
      IR_lib
  )
-# add_executable(
-#     stu_if_generator
-#     stu_cpp/if_generator.cpp
-# )
-# target_link_libraries(
-#     stu_if_generator    
-#     IR_lib
-# )
-# add_executable(
-#     stu_while_generator
-#     stu_cpp/while_generator.cpp
-# )
-# target_link_libraries(
-#     stu_while_generator    
-#     IR_lib
-# )
+ add_executable(
+     if_generator
+     stu_cpp/if_generator.cpp
+ )
+ target_link_libraries(
+     if_generator    
+     IR_lib
+ )
+ add_executable(
+     while_generator
+     stu_cpp/while_generator.cpp
+ )
+ target_link_libraries(
+     while_generator    
+     IR_lib
+ )
