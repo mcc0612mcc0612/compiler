@@ -1,4 +1,3 @@
-add_subdirectory(calculator)
 add_executable(
     gcd_array_generator
     ta_gcd/gcd_array_generator.cpp
@@ -8,35 +7,35 @@ target_link_libraries(
     IR_lib
 )
 
- add_executable(
-     assign_generator
-     stu_cpp/assign_generator.cpp
- )
- target_link_libraries(
-     assign_generator    
-     IR_lib
- )
- add_executable(
-     fun_generator
-     stu_cpp/fun_generator.cpp
- )
- target_link_libraries(
-     fun_generator    
-     IR_lib
- )
- add_executable(
-     if_generator
-     stu_cpp/if_generator.cpp
- )
- target_link_libraries(
-     if_generator    
-     IR_lib
- )
- add_executable(
-     while_generator
-     stu_cpp/while_generator.cpp
- )
- target_link_libraries(
-     while_generator    
-     IR_lib
- )
+add_executable(
+    stu_assign_generator
+    stu_cpp/assign_generator.cpp
+)
+target_link_libraries(
+    stu_assign_generator
+    IR_lib
+)
+add_executable(
+    stu_fun_generator
+    stu_cpp/fun_generator.cpp
+)
+target_link_libraries(
+    stu_fun_generator
+    IR_lib
+)
+add_executable(
+    stu_if_generator
+    stu_cpp/if_generator.cpp
+)
+target_link_libraries(
+    stu_if_generator
+    IR_lib
+)
+add_executable(
+    stu_while_generator
+    stu_cpp/while_generator.cpp
+)
+target_link_libraries(
+    stu_while_generator
+    IR_lib
+)
