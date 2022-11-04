@@ -53,7 +53,7 @@ class CminusfBuilder : public ASTVisitor {
         auto TyInt32 = Type::get_int32_type(module.get());
         auto TyFloat = Type::get_float_type(module.get());
 
-        auto input_type = FunctionType::get(TyInt32, {});
+        auto input_type = FunctionType::get(TyInt32, {});//返回值类型，参数列表
         auto input_fun = Function::create(input_type, "input", module.get());
 
         std::vector<Type *> output_params;

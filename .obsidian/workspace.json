@@ -1,0 +1,164 @@
+{
+  "main": {
+    "id": "3e97110e90ae4217",
+    "type": "split",
+    "children": [
+      {
+        "id": "d3cfe30f8d0bcfab",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ae36c79c350eea53",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Documentations/3-ir-gen/README.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "b236859a87a3302d",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Documentations/common/LightIR.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "4e1274ba4babe248",
+    "type": "split",
+    "children": [
+      {
+        "id": "06de545d02c354d4",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "dd178a686fc46095",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "3e0228769548a2db",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "ASTnum",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "628ae28236e702de",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "4b43945eb5fcd41d",
+    "type": "split",
+    "children": [
+      {
+        "id": "047ff74198f2deab",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8fab48d0e13a4d4b",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Documentations/3-ir-gen/README.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "0c5ae9119ce727d9",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Documentations/3-ir-gen/README.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "d74e5d8b4f40f2d0",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "dbd0fe14916f5761",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Documentations/3-ir-gen/README.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200,
+    "collapsed": true
+  },
+  "active": "ae36c79c350eea53",
+  "lastOpenFiles": [
+    "Documentations/common/LightIR.md",
+    "lab3补充提示.pdf",
+    "README.md",
+    "Documentations/common/cminusf.md",
+    "Documentations/3-ir-gen/README.md",
+    "Documentations/2-ir-gen-warmup/Documentations/common/LightIR.md",
+    "Documentations/2-ir-gen-warmup/Documentations/common/cminusf.md",
+    "Documentations/2-ir-gen-warmup/README.md",
+    "Documentations/1-parser/Flex-regular-expressions.md",
+    "Documentations/1-parser/README.md"
+  ]
+}

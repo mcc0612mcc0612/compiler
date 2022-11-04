@@ -25,7 +25,7 @@ int main() {
   Type *Int32Type = Type::get_int32_type(module);
 
   // main函数
-  auto mainFun = Function::create(FunctionType::get(Int32Type, {}),
+  auto mainFun = Function::create(FunctionType::get(Int32Type, {}),//返回值+参数列表
                                   "main", module); // 创建并返回函数，参数依次是待创建函数类型 ty，函数名字 name (不可为空)，函数所属的模块 parent
 
   auto bb = BasicBlock::create(module, "entry", mainFun);

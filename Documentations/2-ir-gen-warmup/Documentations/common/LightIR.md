@@ -442,7 +442,7 @@ public:
     // 以值 val 来创建常量
     static ConstantInt *get(int val, Module *m);
     // 以值 val 来创建 bool 常量
-    static ConstantInt *get(bool val, Module *m);
+    static ConstantInt *(bool val, Module *m);
 };
 ```
 </details>

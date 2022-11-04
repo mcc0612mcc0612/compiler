@@ -108,7 +108,7 @@ struct ASTNum: ASTFactor {
     virtual void accept(ASTVisitor &) override final;
     CminusType type;
     union {
-        int i_val;
+        int i_val;//数组大小
         float f_val;
     };
 };
@@ -116,7 +116,7 @@ struct ASTNum: ASTFactor {
 struct ASTVarDeclaration: ASTDeclaration {
     virtual void accept(ASTVisitor &) override final;
     CminusType type;
-    std::shared_ptr<ASTNum> num;
+    std::shared_ptr<ASTNum> num;//数组
 };
 
 struct ASTFunDeclaration: ASTDeclaration {

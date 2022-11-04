@@ -1,6 +1,14 @@
 {
     "files.associations": {
         "vector": "cpp",
-        "iostream": "cpp"
-    }
+        "iostream": "cpp",
+        "istream": "cpp",
+        "memory": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "xlocnum": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Enabled",
+    "cmake.configureOnOpen": true
 }

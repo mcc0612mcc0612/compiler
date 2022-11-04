@@ -64,6 +64,7 @@ bool in_global();
 
 ```sh
 mkdir build && cd build
+cmake ..
 make clean
 make -j
 # 安装库 libcminus_io.a 至系统目录
@@ -186,8 +187,8 @@ cminusfc test.cminus
     * 邮件主题: lab3迟交-学号-姓名
     * 内容: 包括迟交原因、最后版本commitID、迟交时间等
   * 迟交分数
-    * x为迟交天数(对于`Soft Deadline`而言)，grade为满分
-      ``` bash
+    * x为迟交天数(对于`S
+    
       final_grade = grade, x = 0
       final_grade = grade * (0.9)^x, 0 < x <= 7
       final_grade = 0, x > 7
