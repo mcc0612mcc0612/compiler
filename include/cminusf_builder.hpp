@@ -36,7 +36,6 @@ class Scope {
                 return iter->second;
             }
         }
-
         return nullptr;
     }
 

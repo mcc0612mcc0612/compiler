@@ -20,7 +20,7 @@
             }
           },
           {
-            "id": "b236859a87a3302d",
+            "id": "1d7dc9ddc2083d25",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -60,7 +60,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "ASTnum",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -150,15 +150,15 @@
   },
   "active": "ae36c79c350eea53",
   "lastOpenFiles": [
+    "Documentations/common/cminusf.md",
     "Documentations/common/LightIR.md",
+    "Documentations/3-ir-gen/more-tips.md",
+    "Documentations/common/simple_cpp.md",
+    "Documentations/common/logging.md",
+    "Documentations/3-ir-gen/README.md",
     "lab3补充提示.pdf",
     "README.md",
-    "Documentations/common/cminusf.md",
-    "Documentations/3-ir-gen/README.md",
     "Documentations/2-ir-gen-warmup/Documentations/common/LightIR.md",
-    "Documentations/2-ir-gen-warmup/Documentations/common/cminusf.md",
-    "Documentations/2-ir-gen-warmup/README.md",
-    "Documentations/1-parser/Flex-regular-expressions.md",
-    "Documentations/1-parser/README.md"
+    "Documentations/2-ir-gen-warmup/Documentations/common/cminusf.md"
   ]
 }

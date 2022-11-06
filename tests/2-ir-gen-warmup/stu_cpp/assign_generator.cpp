@@ -46,6 +46,7 @@ int main() {
   builder->create_store(mul, x1GEP);
   auto x01load =builder->create_load(x1GEP);
 
+
   builder->create_ret(x01load);
   std::cout << module->print();
   delete module;

@@ -1,0 +1,101 @@
+===========lv0_1 START========
+return:	Success
+decl_int:	Success
+decl_float:	Success
+decl_int_array:	Success
+decl_float_array:	Success
+input:	Success
+output_float:	Success
+output_int:	Fail
+points of lv0_1 is: 15
+===========lv0_1 END========
+
+===========lv0_2 START========
+num_add_int:	Fail
+num_sub_int:	Fail
+num_mul_int:	Fail
+num_div_int:	Fail
+num_add_float:	Fail
+num_sub_float:	Fail
+num_mul_float:	Fail
+num_div_float:	Fail
+num_add_mixed:	Fail
+num_sub_mixed:	Fail
+num_mul_mixed:	Fail
+num_div_mixed:	Fail
+num_comp1:	Fail
+num_le_int:	Fail
+num_lt_int:	Fail
+num_ge_int:	Fail
+num_gt_int:	Fail
+num_eq_int:	Fail
+num_neq_int:	Fail
+num_le_float:	Fail
+num_lt_float:	Fail
+num_ge_float:	Fail
+num_gt_float:	Fail
+num_eq_float:	Fail
+num_neq_float:	Fail
+num_le_mixed:	Fail
+num_lt_mixed:	Fail
+num_ge_mixed:	Fail
+num_gt_mixed:	Fail
+num_eq_mixed:	Fail
+num_neq_mixed:	Fail
+num_comp2:	Fail
+points of lv0_2 is: 0
+===========lv0_2 END========
+
+===========lv1 START========
+assign_int_var_local:	Fail
+assign_int_array_local:	Fail
+assign_int_var_global:	Fail
+assign_int_array_global:	Fail
+assign_float_var_local:	Fail
+assign_float_array_local:	Fail
+assign_float_var_global:	Fail
+assign_float_array_global:	Fail
+assign_cmp:	Fail
+innout:	Fail
+idx_float:	Fail
+negidx_int:	Fail
+negidx_float:	Fail
+negidx_intfuncall:	Fail
+negidx_floatfuncall:	Fail
+negidx_voidfuncall:	Fail
+selection1:	Fail
+selection2:	Fail
+selection3:	Fail
+iteration1:	Fail
+iteration2:	Fail
+scope:	Fail
+transfer_float_to_int:	Success
+transfer_int_to_float:	Success
+points of lv1 is: 2
+===========lv1 END========
+
+===========lv2 START========
+funcall_chain:	Fail
+assign_chain:	Fail
+funcall_var:	Fail
+funcall_int_array:	Fail
+funcall_float_array:	Fail
+funcall_array_array:	Fail
+return_in_middle1:	Fail
+return_in_middle2:	Fail
+funcall_type_mismatch1:	Success
+funcall_type_mismatch2:	Success
+return_type_mismatch1:	Fail
+return_type_mismatch2:	Fail
+points of lv2 is: 4
+===========lv2 END========
+
+===========lv3 START========
+complex1:	Fail
+complex2:	Fail
+complex3:	Fail
+complex4:	Fail
+points of lv3 is: 0
+===========lv3 END========
+
+total points: 21
