@@ -14,9 +14,11 @@
 // to store state. You can expand these
 // definitions if you need to.
 Value *tmp_val = nullptr;
+Value *tmp_val2 = nullptr;
+bool need_exit_scope =false;
+bool pre_enter_scope =false;
 // function that is being built
 Function *cur_fun = nullptr;
-
 // types
 Type *VOID_T;
 Type *INT1_T;
@@ -24,7 +26,6 @@ Type *INT32_T;
 Type *INT32PTR_T;
 Type *FLOAT_T;
 Type *FLOATPTR_T;
-
 /*
  * use CMinusfBuilder::Scope to construct scopes
  * scope.enter: enter a new scope
@@ -40,7 +41,6 @@ void CminusfBuilder::visit(ASTProgram &node) {
     INT32PTR_T = Type::get_int32_ptr_type(module.get());
     FLOAT_T = Type::get_float_type(module.get());
     FLOATPTR_T = Type::get_float_ptr_type(module.get());
-
     for (auto decl : node.declarations) {// program ->declaration-list
         decl->accept(*this);
     }
@@ -51,7 +51,7 @@ void CminusfBuilder::visit(ASTNum &node) {
     // Add some code here.
     if(node.type == TYPE_INT)
     	tmp_val = CONST_INT(node.i_val);
-	else
+	else if(node.type == TYPE_FLOAT)
 		tmp_val = CONST_FP(node.f_val);
 }
 
@@ -83,7 +83,7 @@ void CminusfBuilder::visit(ASTVarDeclaration &node) {
             auto *arraytype = ArrayType::get(var_type, node.num->i_val);
             auto a_alloca = builder->create_alloca(arraytype);//创建数组
             std::string name = node.id;//变量名
-            scope.push(name,a_alloca);   
+            scope.push(name,a_alloca);   //数组元素转化为指针
         }
         else{
             auto a_alloc = builder->create_alloca(var_type);
@@ -108,7 +108,7 @@ void CminusfBuilder::visit(ASTFunDeclaration &node) {
 /*-----------------传入参数类型---------------*/
     for (auto &param : node.params) {
         //!TODO: Please accomplish param_types.
-        if(param->isarray){//数组
+        if(param->isarray){//数组,这里不判断指针，就是这么定义的。。。。。
             if (param->type == TYPE_INT)
                 param_types.push_back(INT32PTR_T);
             else if (param->type == TYPE_FLOAT)
@@ -129,10 +129,13 @@ void CminusfBuilder::visit(ASTFunDeclaration &node) {
     auto funBB = BasicBlock::create(module.get(), "entry", fun);
     builder->set_insert_point(funBB);
     scope.enter();
+    pre_enter_scope = true;
     std::vector<Value *> args;
     for (auto arg = fun->arg_begin(); arg != fun->arg_end(); arg++) {
         args.push_back(*arg);//存储函数参数列表
     }
+    //将函数参数存入scope
+    auto size = node.params.size();
     for (int i = 0; i < node.params.size(); ++i) {
         //!TODO: You need to deal with params
         // and store them in the scope.
@@ -184,7 +187,13 @@ void CminusfBuilder::visit(ASTCompoundStmt &node) {
     // to deal with complex statements. 
     //compound-stmt->{local-declarations statement-list}
     //处理局部变量与全局变量冲突
+    bool need_exit_scope = !pre_enter_scope;
+	if (pre_enter_scope)
+	{
+		pre_enter_scope = false;
+	}else{
     scope.enter();
+    }
     for (auto &decl : node.local_declarations) {
         decl->accept(*this);
     }
@@ -194,7 +203,8 @@ void CminusfBuilder::visit(ASTCompoundStmt &node) {
         if (builder->get_insert_block()->get_terminator() != nullptr)
             break;//ret 或 br
     }
-    scope.exit();
+    if(need_exit_scope)
+        scope.exit();
 }
 
 void CminusfBuilder::visit(ASTExpressionStmt &node) {
@@ -222,6 +232,11 @@ void CminusfBuilder::visit(ASTSelectionStmt &node) {//expression,if_statement,el
  	{
 		tmp_val = builder->create_icmp_ne(tmp_val, CONST_INT(0));
 	}
+    if (tmp_val->get_type() == INT1_T)
+ 	{
+        tmp_val = builder->create_zext(tmp_val,INT32_T);
+		tmp_val = builder->create_icmp_ne(tmp_val, CONST_INT(0));
+	}
 	if (tmp_val->get_type() == FLOAT_T)
 	{
 		tmp_val = builder->create_fcmp_ne(tmp_val, CONST_FP(0));
@@ -234,13 +249,19 @@ void CminusfBuilder::visit(ASTSelectionStmt &node) {//expression,if_statement,el
         builder->set_insert_point(iftrue);
         node.if_statement->accept(*this);
         if (builder->get_insert_block()->get_terminator() == nullptr)
-		    builder->create_br(next);
+		    builder->create_br(next);//块最后一定要有终结语句！！！
         builder->set_insert_point(iffalse);
         node.else_statement->accept(*this);
+        if (builder->get_insert_block()->get_terminator() == nullptr)
+		    builder->create_br(next);
+        builder->set_insert_point(next);
     }
     else{
+        auto br = builder -> create_cond_br(tmp_val,iftrue,next);
         builder->set_insert_point(iftrue);
         node.if_statement->accept(*this);
+        if (builder->get_insert_block()->get_terminator() == nullptr)
+		    builder->create_br(next);
         builder->set_insert_point(next);
     } 
 }
@@ -249,6 +270,8 @@ void CminusfBuilder::visit(ASTIterationStmt &node) {
     //!TODO: This function is empty now.
     // Add some code here.
     auto loop_enter = BasicBlock::create(module.get(), "", cur_fun);
+    if (builder->get_insert_block()->get_terminator() == nullptr)
+		builder->create_br(loop_enter);
     builder->set_insert_point(loop_enter);
     auto whiletrue = BasicBlock::create(module.get(), "", cur_fun);
     auto whilefalse = BasicBlock::create(module.get(), "", cur_fun);
@@ -259,6 +282,11 @@ void CminusfBuilder::visit(ASTIterationStmt &node) {
     }
     if (tmp_val->get_type() == INT32_T)
  	{
+		tmp_val = builder->create_icmp_ne(tmp_val, CONST_INT(0));
+	}
+    if (tmp_val->get_type() == INT1_T)
+ 	{
+        tmp_val = builder->create_zext(tmp_val,INT32_T);
 		tmp_val = builder->create_icmp_ne(tmp_val, CONST_INT(0));
 	}
 	if (tmp_val->get_type() == FLOAT_T)
@@ -279,17 +307,26 @@ void CminusfBuilder::visit(ASTReturnStmt &node) {
         //!TODO: The given code is incomplete.
         // You need to solve other return cases (e.g. return an integer).
         node.expression->accept(*this);
-        auto return_type = builder->get_insert_block()->get_parent()->get_function_type();//函数返回值类型
+        if(tmp_val->get_type() != INT32_T && tmp_val->get_type() != FLOAT_T && tmp_val->get_type() != INT1_T){
+            tmp_val = builder -> create_load(tmp_val);
+        }
+        auto return_type = cur_fun->get_function_type()->get_return_type();//函数返回值类型
         if(return_type == INT32_T){
             if(tmp_val->get_type() == FLOAT_T){
                 tmp_val = builder->create_fptosi(tmp_val,INT32_T);
             }
+            if(tmp_val->get_type() == INT1_T){
+                tmp_val = builder->create_zext(tmp_val,INT32_T);
+            }
             builder->create_ret(tmp_val);
         }
-        else if(return_type== FLOAT_T){
-            node.expression->accept(*this);
+        else if(return_type == FLOAT_T){;
             if(tmp_val->get_type() == INT32_T){
-                tmp_val = builder->create_fptosi(tmp_val,FLOAT_T);
+                tmp_val = builder->create_sitofp(tmp_val,FLOAT_T);
+            }
+            if(tmp_val->get_type() == INT1_T){
+                tmp_val = builder->create_zext(tmp_val,INT32_T);
+                tmp_val = builder->create_sitofp(tmp_val,FLOAT_T);
             }
             builder->create_ret(tmp_val);
         }
@@ -300,21 +337,61 @@ void CminusfBuilder::visit(ASTVar &node) {
     //!TODO: This function is empty now.
     // Add some code here.
     //var→ID ∣ ID [ expression] 
+    //数组与指针不是同一类型，明天修改
+    //数组作为函数参数传入以二级指针形式传入
+    //存放地址
     auto var = scope.find(node.id);
-    auto isarray = var->get_type()->get_pointer_element_type()->is_array_type();//for debug
-    if(node.expression == nullptr){//变量为int、float类型
-        if(!isarray)
-            tmp_val = var;
-    }
+    auto ispointer = var->get_type()->get_pointer_element_type()->get_pointer_element_type();//这里指针指向元素类型是指针（**p，当函数传参为数组时）
+    auto is_array =  var->get_type()->get_pointer_element_type()->get_array_element_type();//数组（判断数组要用这样的方式。。。）
+    auto is_int = var->get_type()->get_pointer_element_type()->is_integer_type();
+    auto is_float = var->get_type()->get_pointer_element_type()->is_float_type();
+    auto is_intorfloat_p = var->get_type()->is_pointer_type();
+    if(node.expression == nullptr){//变量为int、float类型//
+            if(is_array){//是数组，要返回数组第一个元素地址
+                tmp_val = builder->create_gep(var, {CONST_INT(0), CONST_INT(0)});//返回数组第一个元素的指针
+            }
+            else if(is_int || is_float ){
+                tmp_val = builder->create_load(var);//返回
+                tmp_val2 = var;
+            }
+            else if(ispointer){
+                tmp_val = builder->create_load(var);//返回指针/数（上一级）
+            }
+        }
     else{//数组类型
         node.expression->accept(*this);//tmp_val此时存储偏移量
-        auto array_type = var->get_type()->get_pointer_element_type();//数组元素类型
         if (tmp_val->get_type() == FLOAT_T)//对数组下表强制转换为整型
  		{
  			tmp_val = builder->create_fptosi(tmp_val, INT32_T);
  		}
-        /*to do 数组下标正负判断*/
-        tmp_val = builder->create_gep(tmp_val, {CONST_INT(0),tmp_val}); 
+        assert(tmp_val->get_type() == INT32_T || tmp_val->get_type() == FLOAT_T);
+		auto is_neg = builder->create_icmp_lt(tmp_val, CONST_INT(0));//判断下标正负
+        auto trueBB =  BasicBlock::create(module.get(), "", cur_fun);
+        auto falseBB = BasicBlock::create(module.get(), "", cur_fun);
+        builder->create_cond_br(is_neg,falseBB,trueBB);
+        builder->set_insert_point(falseBB);//下标为负数
+        auto neg_idx_except_fun = scope.find("neg_idx_except");
+		builder->create_call(static_cast<Function *>(neg_idx_except_fun), {});
+
+		if (cur_fun->get_return_type()->is_void_type())
+			builder->create_void_ret();
+		else if (cur_fun->get_return_type()->is_float_type())
+			builder->create_ret(CONST_FP(0.));
+		else
+			builder->create_ret(CONST_INT(0));//错误处理
+        builder->set_insert_point(trueBB);
+        /*数组下标正负判断*/ 
+        if(is_array){
+            //auto array_load = builder->create_load(var);
+			tmp_val = builder->create_gep(var, {CONST_INT(0),tmp_val});//返回数组第n个元素指针
+        }
+        else if(ispointer){
+            auto array_load = builder->create_load(var);//**a->*a
+			tmp_val = builder->create_gep(array_load, {tmp_val});//*(a+offset)//返回
+            //tmp_val = builder->create_gep(var, {CONST_INT(0),tmp_val});
+        }
+        else
+			tmp_val = builder->create_gep(var, {CONST_INT(0), tmp_val});
     }
 }
 
@@ -326,18 +403,42 @@ void CminusfBuilder::visit(ASTAssignExpression &node) {
     Value *addr;
     node.var->accept(*this);
     addr = tmp_val;
-    auto type = addr->get_type();//for debug
+    if(addr->get_type() == INT32_T ||
+    addr->get_type() == FLOAT_T )
+    addr = tmp_val2;
     node.expression->accept(*this);
     auto rval = tmp_val;
-    if(addr->get_type() != rval->get_type()){
-        if(rval->get_type() == INT32_T){
+    Type *addr_type, *rval_type;//左边一定存储的是指针，因为分配空间时的alloca就是指针。。。
+    if (rval->get_type() == INT32PTR_T || rval->get_type() == FLOATPTR_T)
+	{
+ 			// if the expression is a point, load the value of this point => ret
+ 		rval = builder->create_load(rval);//赋值ret地址放的值
+    }
+    addr_type = addr->get_type()->get_pointer_element_type();
+    rval_type = rval ->get_type();
+    if(addr_type != rval_type){
+        if(rval_type == INT32_T){
             rval = builder->create_sitofp(rval,FLOAT_T);
             builder->create_store(rval,addr); 
         }
-        else if(rval->get_type() == FLOAT_T){
+        else if(rval_type == FLOAT_T){
             rval = builder->create_fptosi(rval,INT32_T);
             builder->create_store(rval,addr); 
         }
+        if(rval_type == INT1_T){
+            if(addr_type == INT32_T){
+                rval = builder->create_zext(rval,INT32_T);
+                builder->create_store(rval,addr);
+            }
+            if(addr_type == FLOAT_T){
+                rval = builder->create_zext(rval,INT32_T);
+                rval = builder->create_sitofp(rval,FLOAT_T);
+                builder->create_store(rval,addr); 
+            }
+        }
+    }
+    else{
+        builder->create_store(rval,addr);
     }
 }
 
@@ -357,6 +458,7 @@ void CminusfBuilder::visit(ASTSimpleExpression &node) {
             lvalue = lval;
         }
         node.additive_expression_r->accept(*this);
+
         auto rval = tmp_val;
         Value *rvalue;
         if(rval->get_type() == INT32PTR_T || rval->get_type() == FLOATPTR_T){
@@ -366,47 +468,75 @@ void CminusfBuilder::visit(ASTSimpleExpression &node) {
             rvalue = rval;
         }
         //类型转换
-        if(lvalue->get_type() != rvalue->get_type()){
-            if(lvalue->get_type() == INT32_T)//lval是int,r是float,把l转换为float
-                lvalue = builder->create_sitofp(lvalue,FLOAT_T);
-            else if(lvalue->get_type() == FLOAT_T)//
-                rvalue = builder->create_sitofp(rvalue,FLOAT_T);
+        if(lvalue->get_type() == INT32PTR_T || lvalue->get_type() == FLOATPTR_T){
+            lvalue = builder->create_load(lvalue);
         }
+        if(rvalue->get_type() == INT32PTR_T || rvalue->get_type() == FLOATPTR_T){
+            rvalue = builder->create_load(rvalue);
+        }
+            if(lvalue->get_type() == INT32_T){//lval是int
+                if(rvalue->get_type() == FLOAT_T)//r是float,把l转换为float
+                    lvalue = builder->create_sitofp(lvalue,FLOAT_T);
+                else if(rvalue->get_type() == INT1_T){//rvalue是bool,把r转化为int
+                    rvalue = builder->create_zext(rvalue,INT32_T);
+                }
+            }
+            else if(lvalue->get_type() == FLOAT_T){//
+                if(rvalue->get_type() == INT32_T)//r是int,把r转换为float
+                    rvalue = builder->create_sitofp(rvalue,FLOAT_T);
+                else if(rvalue->get_type() == INT1_T){//rvalue是bool,把r转化为int，float
+                    rvalue = builder->create_zext(rvalue,INT32_T);
+                    rvalue = builder->create_sitofp(rvalue,FLOAT_T);
+                }
+            }
+            else if(lvalue->get_type() == INT1_T){//
+                if(rvalue->get_type() == INT32_T)//r是int,把l转换为int
+                    lvalue = builder->create_zext(lvalue,INT32_T);
+                else if(rvalue->get_type() == FLOAT_T){//rvalue是float,把l转化为int，float
+                    lvalue = builder->create_zext(lvalue,INT32_T);
+                    lvalue = builder->create_sitofp(lvalue,FLOAT_T);
+                }
+                else{
+                    lvalue = builder->create_zext(lvalue,INT32_T);
+                    rvalue = builder->create_zext(rvalue,INT32_T);
+                }
+            }
+                
         if(node.op == OP_LE){  
             if(lvalue->get_type() == INT32_T)
                 cmp = builder->create_icmp_le(lvalue,rvalue);
             else if(lvalue->get_type() == FLOAT_T)
-                cmp = builder->create_icmp_le(lvalue,rvalue);
+                cmp = builder->create_fcmp_le(lvalue,rvalue);
         }
         else if(node.op == OP_LT){
             if(lvalue->get_type() == INT32_T)
                 cmp = builder->create_icmp_lt(lvalue,rvalue);
             else if(lvalue->get_type() == FLOAT_T)
-                cmp = builder->create_icmp_lt(lvalue,rvalue);
+                cmp = builder->create_fcmp_lt(lvalue,rvalue);
         }
         else if(node.op == OP_GT){
             if(lvalue->get_type() == INT32_T)
                 cmp = builder->create_icmp_gt(lvalue,rvalue);
             else if(lvalue->get_type() == FLOAT_T)
-                cmp = builder->create_icmp_gt(lvalue,rvalue);
+                cmp = builder->create_fcmp_gt(lvalue,rvalue);
         }
         else if(node.op == OP_GE){
             if(lvalue->get_type() == INT32_T)
                 cmp = builder->create_icmp_ge(lvalue,rvalue);
             else if(lvalue->get_type() == FLOAT_T)
-                cmp = builder->create_icmp_ge(lvalue,rvalue);
+                cmp = builder->create_fcmp_ge(lvalue,rvalue);
         }
         else if(node.op == OP_EQ){
             if(lvalue->get_type() == INT32_T)
                 cmp = builder->create_icmp_eq(lvalue,rvalue);
             else if(lvalue->get_type() == FLOAT_T)
-                cmp = builder->create_icmp_eq(lvalue,rvalue);
+                cmp = builder->create_fcmp_eq(lvalue,rvalue);
         }
         else if(node.op == OP_NEQ){
             if(lvalue->get_type() == INT32_T)
                 cmp = builder->create_icmp_ne(lvalue,rvalue);
             else if(lvalue->get_type() == FLOAT_T)
-                cmp = builder->create_icmp_ne(lvalue,rvalue);
+                cmp = builder->create_fcmp_ne(lvalue,rvalue);
         }
         tmp_val = cmp;
     }
@@ -436,24 +566,52 @@ void CminusfBuilder::visit(ASTAdditiveExpression &node) {
             rvalue = expr_val;
         }
         //类型转换
-        if(lvalue->get_type() != rvalue->get_type()){
-            if(lvalue->get_type() == INT32_T)//lval是int,r是float,把l转换为float
-                lvalue = builder->create_sitofp(lvalue,FLOAT_T);
-            else if(lvalue->get_type() == FLOAT_T)//
-                rvalue = builder->create_sitofp(rvalue,FLOAT_T);
+        if(lvalue->get_type() == INT32PTR_T || lvalue->get_type() == FLOATPTR_T){
+            lvalue = builder->create_load(lvalue);
         }
+        if(rvalue->get_type() == INT32PTR_T || rvalue->get_type() == FLOATPTR_T){
+            rvalue = builder->create_load(rvalue);
+        }
+            if(lvalue->get_type() == INT32_T){//lval是int
+                if(rvalue->get_type() == FLOAT_T)//r是float,把l转换为float
+                    lvalue = builder->create_sitofp(lvalue,FLOAT_T);
+                else if(rvalue->get_type() == INT1_T){//rvalue是bool,把r转化为int
+                    rvalue = builder->create_zext(rvalue,INT32_T);
+                }
+            }
+            else if(lvalue->get_type() == FLOAT_T){//
+                if(rvalue->get_type() == INT32_T)//r是int,把r转换为float
+                    rvalue = builder->create_sitofp(rvalue,FLOAT_T);
+                else if(rvalue->get_type() == INT1_T){//rvalue是bool,把r转化为int，float
+                    rvalue = builder->create_zext(rvalue,INT32_T);
+                    rvalue = builder->create_sitofp(rvalue,FLOAT_T);
+                }
+            }
+            else if(lvalue->get_type() == INT1_T){//
+                if(rvalue->get_type() == INT32_T)//r是int,把l转换为int
+                    lvalue = builder->create_zext(lvalue,INT32_T);
+                else if(rvalue->get_type() == FLOAT_T){//rvalue是float,把l转化为int，float
+                    lvalue = builder->create_zext(lvalue,INT32_T);
+                    lvalue = builder->create_sitofp(lvalue,FLOAT_T);
+                }
+                else{
+                    lvalue = builder->create_zext(lvalue,INT32_T);
+                    rvalue = builder->create_zext(rvalue,INT32_T);
+                }
+            }
+
         Value *result;
         if(node.op == OP_PLUS){
             if(lvalue->get_type() == INT32_T)
-                result = builder->create_iadd(lvalue, rvalue);
+                result = builder->create_iadd(rvalue, lvalue);
             else if(lvalue->get_type() == FLOAT_T)
-                result = builder->create_fadd(lvalue, rvalue);
+                result = builder->create_fadd(rvalue, lvalue);
         }
         else if(node.op == OP_MINUS){
             if(lvalue->get_type() == INT32_T)
-                result = builder->create_isub(lvalue, rvalue);
+                result = builder->create_isub(rvalue, lvalue);
             else if(lvalue->get_type() == FLOAT_T)
-                result = builder->create_fsub(lvalue, rvalue);
+                result = builder->create_fsub(rvalue, lvalue);
         }
         tmp_val = result;
     }
@@ -463,16 +621,10 @@ void CminusfBuilder::visit(ASTTerm &node) {
     //!TODO: This function is empty now.
     // Add some code here.
     //term->term mulop factor | factor
-    node.factor->accept(*this);
+    if(node.term == NULL){
+        node.factor->accept(*this);
+    }
     if (node.term){
-        auto term_val = tmp_val;
-        Value *lvalue;
-        if(term_val->get_type() == INT32PTR_T || term_val->get_type() == FLOATPTR_T){
-            lvalue = builder->create_load(tmp_val);//如果是数组，从地址load入数据
-        }
-        else{
-            lvalue = term_val;
-        }
         node.factor->accept(*this);
         auto factor_val = tmp_val;
         Value *rvalue;
@@ -482,13 +634,49 @@ void CminusfBuilder::visit(ASTTerm &node) {
         else{
             rvalue = factor_val;
         }
-        //类型转换
-        if(lvalue->get_type() != rvalue->get_type()){
-            if(lvalue->get_type() == INT32_T)//lval是int,r是float,把l转换为float
-                lvalue = builder->create_sitofp(lvalue,FLOAT_T);
-            else if(lvalue->get_type() == FLOAT_T)//
-                rvalue = builder->create_sitofp(rvalue,FLOAT_T);
+        node.term->accept(*this);
+        auto term_val = tmp_val;
+        Value *lvalue;
+        if(term_val->get_type() == INT32PTR_T || term_val->get_type() == FLOATPTR_T){
+            lvalue = builder->create_load(term_val);//如果是数组，从地址load入数据
         }
+        else{
+            lvalue = term_val;
+        }
+        //类型转换
+        if(lvalue->get_type() == INT32PTR_T || lvalue->get_type() == FLOATPTR_T){
+            lvalue = builder->create_load(lvalue);
+        }
+        if(rvalue->get_type() == INT32PTR_T || rvalue->get_type() == FLOATPTR_T){
+            rvalue = builder->create_load(rvalue);
+        }
+            if(lvalue->get_type() == INT32_T){//lval是int
+                if(rvalue->get_type() == FLOAT_T)//r是float,把l转换为float
+                    lvalue = builder->create_sitofp(lvalue,FLOAT_T);
+                else if(rvalue->get_type() == INT1_T){//rvalue是bool,把r转化为int
+                    rvalue = builder->create_zext(rvalue,INT32_T);
+                }
+            }
+            else if(lvalue->get_type() == FLOAT_T){//
+                if(rvalue->get_type() == INT32_T)//r是int,把r转换为float
+                    rvalue = builder->create_sitofp(rvalue,FLOAT_T);
+                else if(rvalue->get_type() == INT1_T){//rvalue是bool,把r转化为int，float
+                    rvalue = builder->create_zext(rvalue,INT32_T);
+                    rvalue = builder->create_sitofp(rvalue,FLOAT_T);
+                }
+            }
+            else if(lvalue->get_type() == INT1_T){//
+                if(rvalue->get_type() == INT32_T)//r是int,把l转换为int
+                    lvalue = builder->create_zext(lvalue,INT32_T);
+                else if(rvalue->get_type() == FLOAT_T){//rvalue是float,把l转化为int，float
+                    lvalue = builder->create_zext(lvalue,INT32_T);
+                    lvalue = builder->create_sitofp(lvalue,FLOAT_T);
+                }
+                else{
+                    lvalue = builder->create_zext(lvalue,INT32_T);
+                    rvalue = builder->create_zext(rvalue,INT32_T);
+                }
+            }
         Value *result;
         if(node.op == OP_MUL){
             if(lvalue->get_type() == INT32_T)
@@ -523,17 +711,20 @@ void CminusfBuilder::visit(ASTCall &node) {
     std::vector<Value *> funArgs;
     //传入参数与实际参数类型转换
     for (auto &arg : node.args){
-        arg->accept(*this);
+        arg->accept(*this);//tmp_val存储实际参数
         if(params[i] == INT32_T){
-            if(tmp_val->get_type() == INT32_T){
-                    tmp_val = builder->create_fptosi(tmp_val, INT32_T);
+            if(tmp_val->get_type() == FLOAT_T){
+                tmp_val = builder->create_fptosi(tmp_val, INT32_T);
+            }
+            if(tmp_val->get_type() == INT1_T){
+                tmp_val = builder->create_zext(tmp_val,INT32_T);
             }
             else if (tmp_val->get_type() == INT32PTR_T)
             {
                 tmp_val = builder->create_load(tmp_val);
             }
             else if(tmp_val->get_type() == FLOATPTR_T){
-                tmp_val = builder->create_load(tmp_val);
+                tmp_val = builder->create_load(tmp_val);//得到tmp_val的值
                 tmp_val = builder->create_fptosi(tmp_val, INT32_T);
             }
         }
@@ -541,6 +732,10 @@ void CminusfBuilder::visit(ASTCall &node) {
             if(tmp_val->get_type() == INT32_T){
                 tmp_val = builder->create_sitofp(tmp_val, FLOAT_T);
             }
+            if(tmp_val->get_type() == INT1_T){
+                tmp_val = builder->create_zext(tmp_val,INT32_T);
+                tmp_val = builder->create_sitofp(tmp_val, FLOAT_T);
+            }
             else if (tmp_val->get_type() == INT32PTR_T)
             {
                 tmp_val = builder->create_load(tmp_val);
@@ -549,6 +744,13 @@ void CminusfBuilder::visit(ASTCall &node) {
             else if(tmp_val->get_type() == FLOATPTR_T){
                 tmp_val = builder->create_load(tmp_val);
             }
+        }
+        else if(params[i] == FLOATPTR_T)
+        {
+            ;
+        }
+        else if(params[i] == INT32PTR_T){
+            ;
         }
         funArgs.push_back(tmp_val);
         i++;

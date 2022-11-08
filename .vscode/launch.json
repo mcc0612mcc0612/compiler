@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cminusfc",
-            "args": ["${workspaceFolder}/tests/3-ir-gen/testcases/lv0_1/return.cminus"],
+            "args": ["${workspaceFolder}/tests/3-ir-gen/testcases/lv3/complex2.cminus"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [{"name":"LOGV","value": "0"}],

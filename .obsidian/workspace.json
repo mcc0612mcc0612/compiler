@@ -8,24 +8,12 @@
         "type": "tabs",
         "children": [
           {
-            "id": "ae36c79c350eea53",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Documentations/3-ir-gen/README.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
             "id": "1d7dc9ddc2083d25",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Documentations/common/LightIR.md",
+                "file": "Documentations/3-ir-gen/README.md",
                 "mode": "source",
                 "source": false
               }
@@ -60,7 +48,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "test_ast",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -148,17 +136,17 @@
     "width": 200,
     "collapsed": true
   },
-  "active": "ae36c79c350eea53",
+  "active": "1d7dc9ddc2083d25",
   "lastOpenFiles": [
-    "Documentations/common/cminusf.md",
-    "Documentations/common/LightIR.md",
     "Documentations/3-ir-gen/more-tips.md",
-    "Documentations/common/simple_cpp.md",
-    "Documentations/common/logging.md",
+    "Documentations/common/LightIR.md",
+    "Documentations/common/cminusf.md",
     "Documentations/3-ir-gen/README.md",
+    "Documentations/2-ir-gen-warmup/README.md",
+    "Documentations/1-parser/README.md",
+    "Documentations/common/logging.md",
+    "Documentations/common/simple_cpp.md",
     "lab3补充提示.pdf",
-    "README.md",
-    "Documentations/2-ir-gen-warmup/Documentations/common/LightIR.md",
-    "Documentations/2-ir-gen-warmup/Documentations/common/cminusf.md"
+    "README.md"
   ]
 }

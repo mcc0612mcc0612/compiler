@@ -624,7 +624,7 @@ public:
     // 若是PointerType则返回指向的类型，若不是则返回nullptr。
     Type *get_pointer_element_type();
     // 若是ArrayType则返回数组元素的类型，若不是则返回nullptr。
-    Type *get_array_element_type();
+    Type *Type *get_array_element_type();();
 };
 ```
 

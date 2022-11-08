@@ -1,4 +1,4 @@
-#include "ast.hpp"
+#include "../include/ast.hpp"
 #include <iostream>
 int main(int argc, char **argv)
 {
