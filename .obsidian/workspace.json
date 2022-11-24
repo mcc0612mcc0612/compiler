@@ -1,0 +1,138 @@
+{
+  "main": {
+    "id": "7068fc6cfebd7bba",
+    "type": "split",
+    "children": [
+      {
+        "id": "0180c5219c40b24a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "58418c1db96a0c96",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "1409954c10beef07",
+    "type": "split",
+    "children": [
+      {
+        "id": "9ba82f1b1ceaa181",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "46784b5caec0e572",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "cfec668696595b49",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "语法树",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "6da50696a83b698f",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "aeb5cb5c55e6dd5d",
+    "type": "split",
+    "children": [
+      {
+        "id": "5ed391e3abb0814b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f771bff8e7869bea",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "5bdfba26ab8637b0",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "3a4e0d416eacbc19",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "cae8275feaf0421d",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "58418c1db96a0c96",
+  "lastOpenFiles": [
+    "未命名.md",
+    "Reports/3-ir-gen/report.pdf",
+    "Reports/3-ir-gen/report.md",
+    "Documentations/common/cminusf.md"
+  ]
+}

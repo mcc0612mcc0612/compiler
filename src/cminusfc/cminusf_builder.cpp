@@ -108,7 +108,7 @@ void CminusfBuilder::visit(ASTFunDeclaration &node) {
 /*-----------------传入参数类型---------------*/
     for (auto &param : node.params) {
         //!TODO: Please accomplish param_types.
-        if(param->isarray){//数组,这里不判断指针，就是这么定义的。。。。。
+        if(param->isarray){//数组,这里不判断指针。。。。。
             if (param->type == TYPE_INT)
                 param_types.push_back(INT32PTR_T);
             else if (param->type == TYPE_FLOAT)
@@ -345,8 +345,7 @@ void CminusfBuilder::visit(ASTVar &node) {
     auto is_array =  var->get_type()->get_pointer_element_type()->get_array_element_type();//数组（判断数组要用这样的方式。。。）
     auto is_int = var->get_type()->get_pointer_element_type()->is_integer_type();
     auto is_float = var->get_type()->get_pointer_element_type()->is_float_type();
-    auto is_intorfloat_p = var->get_type()->is_pointer_type();
-    if(node.expression == nullptr){//变量为int、float类型//
+    if(node.expression == nullptr){
             if(is_array){//是数组，要返回数组第一个元素地址
                 tmp_val = builder->create_gep(var, {CONST_INT(0), CONST_INT(0)});//返回数组第一个元素的指针
             }
@@ -382,7 +381,6 @@ void CminusfBuilder::visit(ASTVar &node) {
         builder->set_insert_point(trueBB);
         /*数组下标正负判断*/ 
         if(is_array){
-            //auto array_load = builder->create_load(var);
 			tmp_val = builder->create_gep(var, {CONST_INT(0),tmp_val});//返回数组第n个元素指针
         }
         else if(ispointer){
