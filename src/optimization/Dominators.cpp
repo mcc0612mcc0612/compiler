@@ -21,8 +21,8 @@ void Dominators::run() {
         create_dominance_frontier(f);
         create_dom_tree_succ(f);
         // for debug
-        // print_idom(f);
-        // print_dominance_frontier(f);
+        print_idom(f);
+        print_dominance_frontier(f);
     }
 }
 

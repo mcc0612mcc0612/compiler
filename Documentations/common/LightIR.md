@@ -358,7 +358,7 @@ public:
     // 将指令 instr 从该基本块的指令链表中移除，该 API 会同时维护好 instr 的操作数的 use 链表。
     void delete_instr(Instruction *instr);
     // 判断该基本块是否为空
-    bool empty();
+    bool empty();get_
     // 返回该基本块中的指令数目
     int get_num_of_instr();
     // 返回该基本块的指令链表

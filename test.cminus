@@ -1,0 +1,17 @@
+int globVar;
+int func(int x){
+    if(x > 0){
+        x = 0;
+    }
+    return x;
+}
+int main(void){
+    int arr[10];
+    int b;
+    globVar = 1;
+    arr[5] = 999;
+    b = 2333;
+    func(b);
+    func(globVar);
+    return 0;
+}
