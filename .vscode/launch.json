@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cminusfc",
-            "args": ["-mem2reg","${workspaceFolder}/test.cminus"],
+            "args": ["-mem2reg","${workspaceFolder}/tests/4-ir-opt/testcases/GVN/functional/bin.cminus"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

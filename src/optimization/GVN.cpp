@@ -135,7 +135,7 @@ GVN::partitions GVN::join(const partitions &P1, const partitions &P2) {
     for(auto &c1 : P1 ){
         for(auto &c2 : P2){
             auto ck = intersect(c1,c2);
-            if(ck) P.insert(ck)
+            if(ck) P.insert(ck);
         }
     }
     return P;
@@ -178,33 +178,39 @@ void GVN::detectEquivalences(){
                         auto it = bb.get_pre_basic_blocks().begin();
                         pin_[&bb] = pout_[*it];
                     }
-                    else(bb.get_pre_basic_blocks().size() == 2){
+                    else if(bb.get_pre_basic_blocks().size() == 2){
                         auto P1 = *(bb.get_pre_basic_blocks().begin());
                         auto P2 = *(bb.get_pre_basic_blocks().end());
-                        pin_[&bb] = join(*P1,*P2);
+                        pin_[&bb] = join(pout_[P1],pout_[P2]);
                     }
                     is_first = 0;
                 }
                 else if(is_first == 0){
                     pin_[&bb] = pout_[&bb];
                 }
-                pout = transferFunction(&instr,instr.null,pin_[&bb])
-                if(pout != pout_[&bb])  {changed = true;pout_[&bb] = pout;}
+                if(instr.is_phi());
+                else pout = transferFunction(&instr,nullptr,pin_[&bb]);
+                if(pout == pout_[&bb]);
+                else{
+                    changed = true;
+                    pout_[&bb] = pout;
+                }
             }
             /*-----------------------------处理后继节点的phi指令---------------------------------*/
             for(auto &succ_bb : bb.get_succ_basic_blocks()){
                 for(auto &instr : succ_bb->get_instructions()){//后继块的phi前移
                     if(instr.is_phi()){
-                        if(*(instr.get_operand(1)) == dynamic_cast<Value> (bb))
+                        if((instr.get_operand(1)) == (dynamic_cast<Value*> (&bb)))//比较地址？？
                             pout = transferFunction(&instr,instr.get_operand(0),pin_[&bb]);
-                        else if(*(instr.get_operand(3)) == dynamic_cast<Value> (bb))
+                        else if((instr.get_operand(3)) == (dynamic_cast<Value*> (&bb)))//比较地址？？
                             pout = transferFunction(&instr,instr.get_operand(2),pin_[&bb]);
                         else{
                             printf("ERROR!后继节点参数未找到!\n");
                             return ;
                         }
                     }
-                    if(pout != pout_[&bb]){
+                    if(pout == pout_[&bb]);
+                    else{
                         changed = true;
                         pout_[&bb] = pout;
                     }
@@ -218,48 +224,39 @@ void GVN::detectEquivalences(){
     }
 }
 //寻找target是否在对应的集合,若在则删除它
-bool extract(partition pin, Value* target){
+bool GVN::extract(partitions pin, Value* target){
     bool is_find = false;
     for(auto it = pin.begin();it != pin.end(); it++){
-        auto valueset = *it -> members;
+        auto valueset = (*it) -> members_;
         auto it_ = valueset.begin();
         for(;it_ != valueset.end();it_++){
-            if(*(*it_) == *target) {
+            if(*it_ == target) {
                 valueset.erase(it_);is_find = true;
-                if(*(*it -> leader) == *target) *(*it -> leader) = *(*(valueset.begin()));//如果leader == target，删除leader
+                if((*it)->leader_ == target) 
+                    *((*it)->leader_) = *(*(valueset.begin()));//如果leader == target，删除leader
                 return is_find;
             }
         }
     }
     return is_find;    
 }
-//value版
-shared_ptr<Expression> findphi(partition pin, Value* target){
-    for(auto it = pin.begin();it! = pin.end();it++){
-        auto valueset = *it -> members_;//在members寻找target
-        for(auto it_ = valueset.begin();it_ != valueset.end();it_++){
-            if(*(*it_) == *target) return *it -> value_phi_;
-        }
-    }
-    return nullptr;
-}
 
-shared_ptr<Expression> findexpr(partition pin, Value* target){
-    for(auto it = pin.begin();it! = pin.end();it++){
-        auto valueset = *it -> members_;//在members寻找target
+shared_ptr<Expression> GVN::findexpr(partitions pin, Value* target){
+    for(auto it = pin.begin();it != pin.end();it++){
+        auto valueset = (*it)->members_;//在members寻找target
         for(auto it_ = valueset.begin();it_ != valueset.end();it_++){
-            if(*(*it_) == *target) return *it -> value_expr_;
+            if(*it_ == target) return (*it) -> value_expr_;
         }
     }
     return nullptr;
 }
 
 //Expression-value_expr_版:查找并且插入
-bool findexp_insert(partition pin, shared_ptr<Expression> target, Value* x){
-    for(auto it = pin.begin();it! = pin.end();it++){
-        if (*target == *it -> value_expr_){//在value_expr_寻找target
+bool GVN::findexp_insert(partitions pin, shared_ptr<Expression> target, Value* x){
+    for(auto it = pin.begin();it != pin.end();it++){
+        if (target == (*it)->value_expr_){//在value_expr_寻找target
             //Ci = Ci ∪ {x, ve}
-            *it -> members_.insert(x);
+            (*it) -> members_.insert(x);
             return true;
         }
     }
@@ -267,11 +264,11 @@ bool findexp_insert(partition pin, shared_ptr<Expression> target, Value* x){
 }
 
 //Expression-value_phi_版:查找并且插入
-bool findvpf_insert(partition pin, shared_ptr<PhiExpression> target, Value* x){
+bool GVN::findvpf_insert(partitions pin, shared_ptr<PhiExpression> target, Value* x){
     if(!target) return false;
-    for(auto it = pin.begin();it! = pin.end();it++){
-        if *target == *it -> value_phi_;{//在value_phi_寻找target
-            *it -> members_.insert(x);
+    for(auto it = pin.begin();it != pin.end();it++){
+        if (*target == *((*it)->value_phi_)){//在value_phi_寻找target
+            (*it)->members_.insert(x);
             return true;
         }
     }
@@ -280,45 +277,59 @@ bool findvpf_insert(partition pin, shared_ptr<PhiExpression> target, Value* x){
 
 
 //将instr左值转化为phi+phi
-shared_ptr<Expression> GVN::valueExpr(Instruction *instr,Value *c, partition pin) {
+shared_ptr<Expression> GVN::valueExpr(Instruction *instr,Value *c, partitions pin) {
     // TODO   
     shared_ptr<Expression> expr;
     //算术表达式
-    if(instr->op_id_ == add || instr->op_id_ == sub || instr->op_id_ == mul || 
-    instr->op_id_ == sdiv || instr->op_id_ == fadd || instr->op_id_ == fsub || 
-    instr->op_id_ == fmul || instr->op_id_ == fdiv ){
-        Value* op0 = instr->get_operand(0);
-        auto value_exp0 = findexpr(pin,op0);//寻找op等价类
-        Value* op1 = instr->get_operand(1);
-        auto value_exp1 = findexpr(pin,op1);
-        if(value_exp0);
-        else{//如果没找到等价类，创建新的Expression
-            Value* constant_op0 = dynamic_cast<Constant *>(op0);
-            if(constant_op0)//常量 or 变量？
-                value_exp0 = shared_ptr<ConstantExpression>(value_exp0)->create(dynamic_cast<Constant*> op0);
-            else
-                value_exp0 = shared_ptr<VariableExpression>(value_exp0)->create(op0);
-        }        
-        if(value_exp1);
-        else{//如果没找到等价类，创建新的Expression
-            Value* constant_op1 = dynamic_cast<Constant *>(op1);
-            if(constant_op0)//常量 or 变量？
-                value_exp1 = shared_ptr<ConstantExpression>(value_exp1)->create(dynamic_cast<Constant*> op1);
-            else
-                value_exp1 = shared_ptr<VariableExpression>(value_exp1)->create(op1);
+    if(instr == nullptr){
+        auto expr = findexpr(pin,c);
+        if(expr){
+            ;
         }
-        shared_ptr<BinaryExpression> value_exp = *(value_exp -> create(instr->op_id_,,pvalue_exp0,value_exp1));
-        return shared_ptr<Expression> value_exp;
+        else{
+            Constant* constant_op = dynamic_cast<Constant *>(c);
+            if(constant_op)//常量 or 变量？
+                expr = std::dynamic_pointer_cast<ConstantExpression>(expr)->create(constant_op);
+            else{
+                expr = std::dynamic_pointer_cast<VariableExpression>(expr)->create(c);
+                printf("ERROR: undefined variable!!!");
+                return 0;
+            }
+        }
     }
-    else if(instr->op_id_ == getelementptr){
-            
+    if(instr->get_instr_type() == Instruction::add || instr->get_instr_type() == Instruction::sub || instr->get_instr_type() == Instruction::mul || 
+    instr->get_instr_type() == Instruction::sdiv || instr->get_instr_type() == Instruction::fadd || instr->get_instr_type() == Instruction::fsub || 
+    instr->get_instr_type() == Instruction::fmul || instr->get_instr_type() == Instruction::fdiv ){
+        Value* op0 = instr->get_operand(0);
+        auto exp0 = valueExpr(nullptr,op0,pin);//寻找op等价类
+        Value* op1 = instr->get_operand(1);
+        auto exp1 = valueExpr(nullptr,op1,pin);
+        expr = std::dynamic_pointer_cast<BinaryExpression>(expr)->create(instr->get_instr_type(),exp0,exp1);
     }
-    else if(instr->op_id_ == phi){
-
+    else if(instr->get_instr_type() == Instruction::getelementptr){
+        for(int i = 0;i < instr->get_num_ops();i++){
+            auto ve = instr->get_operand(i);
+            auto exp = valueExpr(nullptr,ve,pin);
+            std::dynamic_pointer_cast<GepExpression> (expr)->idxs.push_back(exp);
+            //std::make_shared
+        }
     }
-    else if(instr->op_id_ == cmp || instr->op_id_ == fcmp)
-    else if(instr->op_id_ == zext || instr->op_id_ == fptosi || instr->op_id_ == sitofp)
-    return expr;
+    else if(instr->get_instr_type() == Instruction::phi){
+        expr = valueExpr(nullptr,c,pin);
+    }
+    else if(instr->get_instr_type() == Instruction::cmp || instr->get_instr_type() == Instruction::fcmp){
+        Value* op0 = instr->get_operand(0);
+        auto exp0 = valueExpr(nullptr,op0,pin);//寻找op等价类
+        Value* op1 = instr->get_operand(1);
+        auto exp1 = valueExpr(nullptr,op1,pin);
+        expr = std::dynamic_pointer_cast<CmpExpression> (expr)->create(dynamic_cast<CmpInst*>(instr)->get_cmp_op(),exp0,exp1);
+    }
+    else if(instr->get_instr_type() == Instruction::zext || instr->get_instr_type() == Instruction::fptosi || instr->get_instr_type() == Instruction::sitofp){
+        Value* op = instr->get_operand(0);
+        auto exp = valueExpr(nullptr,op,pin);
+        expr = std::dynamic_pointer_cast<ZextExpression> (expr)->create(exp);
+    }
+    return std::dynamic_pointer_cast<Expression>(expr);
 }
 
 // instruction of the form `x = e`, mostly x is just e (SSA), but for copy stmt x is a phi instruction in the
@@ -339,15 +350,17 @@ GVN::partitions GVN::transferFunction(Instruction *x, Value *e, partitions pin) 
     else{
         ve = valueExpr(x,nullptr,pin);//传入左式
     }
-    shared_ptr<PhiExpression> vpf = valuePhiFunc(ve,pin);
-    if (findexp_insert(pout,ve，static_pointer_cast<Value*> x) || findvpf_insert(pout,vpf,static_pointer_cast<Value*> x));    
+    std::shared_ptr<PhiExpression> vpf = valuePhiFunc(ve,pin);
+    if (findexp_insert(pout,ve,dynamic_cast<Value*>(x)) || findvpf_insert(pout,vpf,dynamic_cast<Value*>(x))){
+        ;
+    }  
     else{
         //POUTs = POUTs ∪ {vn, x, ve : vpf}
-        struct CongruenceClass newpar;
-        newpar.value_expr_ = ve; 
-        newpar.members_.insert(x);
-        if(vpf) newpar.value_phi_ = vpf;
-        pout.insert(shared_ptr<CongruenceClass>(&newpar));
+        auto newpar = createCongruenceClass(next_value_number_++);
+        newpar->value_expr_ = ve; 
+        newpar->members_.insert(x);
+        if(vpf) newpar->value_phi_ = vpf;
+        pout.insert(newpar);
     }
     // TODO: get different ValueExpr by Instruction::OpID, modify pout
     return pout;
@@ -357,20 +370,27 @@ GVN::partitions GVN::transferFunction(Instruction *x, Value *e, partitions pin) 
 shared_ptr<PhiExpression> GVN::valuePhiFunc(shared_ptr<Expression> ve, const partitions &P) {
     // TODO
     //ve is of the form φk(vi1, vj1) ⊕ φk(vi2, vj2)
-    if(ve.expr_type == e_bin){
-        if(ve.lhs_->expr_type == e_phi && ve.rhs_->expr_type == e_phi){
+    if(ve->get_expr_type() == Expression::e_bin){
+        if( std::dynamic_pointer_cast<BinaryExpression>(ve)->lhs_->get_expr_type() == Expression::e_phi && 
+            std::dynamic_pointer_cast<BinaryExpression>(ve)->rhs_->get_expr_type() == Expression::e_phi){
             //vP= vi1 ⊕ vi2
-            shared_ptr<BinaryExpression> vL = vP->create(ve.op_,ve.lhs_.lhs_,ve.rhs_.lhs_);
-            shared_ptr<Expression> vi = getVN(P,vL);
+            auto vlhs = std::dynamic_pointer_cast<BinaryExpression>(ve)->lhs_;
+            auto vrhs = std::dynamic_pointer_cast<BinaryExpression>(ve)->rhs_;
+            std::shared_ptr<BinaryExpression> vL = vL->create(std::dynamic_pointer_cast<BinaryExpression>(ve)->op_,
+                                                                std::dynamic_pointer_cast<PhiExpression>(vlhs)->lhs_,
+                                                                std::dynamic_pointer_cast<PhiExpression>(vrhs)->lhs_);
+            std::shared_ptr<Expression> vi = getVN(P,vL);
             if(vi == nullptr){
-                vi = valuePhiFunc(vL, POUTkl);
+                vi = valuePhiFunc(vL, P);
             }
-            shared_ptr<BinaryExpression> vR = vP->create(ve.op_,ve.lhs_.rhs_,ve.rhs_.rhs_);
-            shared_ptr<Expression> vj = getVN(P,vR);
+            std::shared_ptr<BinaryExpression> vR = vR->create(std::dynamic_pointer_cast<BinaryExpression>(ve)->op_,
+                                                                std::dynamic_pointer_cast<PhiExpression>(vlhs)->rhs_,
+                                                                std::dynamic_pointer_cast<PhiExpression>(vrhs)->rhs_);
+            std::shared_ptr<Expression> vj = getVN(P,vR);
             if(vj == nullptr){
-                vj = valuePhiFunc(vR, POUTkl);
+                vj = valuePhiFunc(vR, P);
             }
-            shared_ptr<PhiExpression> vr = vr->create(vi,vj);
+            std::shared_ptr<PhiExpression> vr = vr->create(vi,vj);
             if(vi && vj) return vr;
         }
     }
@@ -499,11 +519,32 @@ GVN::partitions GVN::clone(const partitions &p) {
 
 bool operator==(const GVN::partitions &p1, const GVN::partitions &p2) {
     // TODO: how to compare partitions?
+    auto it1 = p1.begin();
+    auto it2 = p2.begin();
+    for(;;it1++,it2++){
+        if(it1 == p1.end() && it2 != p2.end()) return false;
+        else if(it1 != p1.end() && it2 == p2.end()) return false;
+        else if(it1 == p1.end() && it2 == p2.end()) return true;
+        else{
+            if(*(*it1) == *(*it2)) continue;
+            else return false;
+        }
+    }
     return false;
 }
 
 bool CongruenceClass::operator==(const CongruenceClass &other) const {
     // TODO: which fields need to be compared?
-
+    auto it1 = this->members_.begin();
+    auto it2 = other.members_.begin();
+    for(;;it1++,it2++){
+        if(it1 == this->members_.end() && it2 != other.members_.end()) return false;
+        else if(it1 != this->members_.end() && it2 == other.members_.end()) return false;
+        else if(it1 == this->members_.end() && it2 == other.members_.end()) return true;
+        else{
+            if(*it1 == *it2) continue;
+            else return false;
+        }
+    }
     
 }

@@ -40,7 +40,7 @@ class ConstFolder {
 class Expression {
   public:
     // TODO: you need to extend expression types according to testcases
-    enum gvn_expr_t { e_constant, e_bin, e_phi };
+    enum gvn_expr_t { e_constant, e_bin, e_phi,e_variable,e_gep,e_cmp,e_zext };
     Expression(gvn_expr_t t) : expr_type(t) {}
     virtual ~Expression() = default;
     virtual std::string print() = 0;
@@ -83,13 +83,82 @@ class BinaryExpression : public Expression {
         else
             return false;
     }
-
     BinaryExpression(Instruction::OpID op, std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs)
         : Expression(e_bin), op_(op), lhs_(lhs), rhs_(rhs) {}
 
-  private:
     Instruction::OpID op_;
     std::shared_ptr<Expression> lhs_, rhs_;
+};
+
+//gepexpression
+class GepExpression : public Expression{
+  public:
+    static std::shared_ptr<GepExpression> create(std::vector<std::shared_ptr<Expression>> idxs){
+      return std::make_shared<GepExpression>(idxs);
+    }
+    virtual std::string print() {
+      auto it = idxs.end();
+      std::string str = "(gep";
+      for(it = it-1; it>=idxs.begin(); it--)
+        str+ " " + (*it)->print();
+      str += ")";        
+      return str;
+    }
+    GepExpression(std::vector<std::shared_ptr<Expression>> idxs) : Expression(e_gep), idxs(idxs) {}
+ 
+    std::vector<std::shared_ptr<Expression>> idxs;
+};
+
+//cmp,fcmp
+class CmpExpression : public Expression{
+  public:
+    static std::shared_ptr<CmpExpression> create(CmpInst::CmpOp op, std::shared_ptr<Expression>lhs,std::shared_ptr<Expression>rhs){
+      return std::make_shared<CmpExpression>(op,lhs,rhs);
+    }
+    virtual std::string print() {
+      return "(cmp" + print_cmp_type(op) + " " + lhs_->print() + " " + rhs_->print() + ")";
+    }
+    std::string print_cmp_type(CmpInst::CmpOp op) {
+    switch (op) {
+      case CmpInst::GE: return "sge"; break;
+      case CmpInst::GT: return "sgt"; break;
+      case CmpInst::LE: return "sle"; break;
+      case CmpInst::LT: return "slt"; break;
+      case CmpInst::EQ: return "eq"; break;
+      case CmpInst::NE: return "ne"; break;
+      default: break;
+    }
+    return "wrong cmpop";
+  }
+    CmpExpression(CmpInst::CmpOp op, std::shared_ptr<Expression>lhs,std::shared_ptr<Expression>rhs) : Expression(e_cmp), 
+    op(op),lhs_(lhs),rhs_(rhs) {}
+
+    CmpInst::CmpOp op;
+    std::shared_ptr<Expression>lhs_, rhs_;
+};
+
+class ZextExpression : public Expression{
+  public:
+    static std::shared_ptr<ZextExpression> create(std::shared_ptr<Expression> c) { return std::make_shared<ZextExpression>(c); }
+    virtual std::string print() { return c_->print(); }
+    // we leverage the fact that constants in lightIR have unique addresses
+    bool equiv(const ZextExpression *other) const { return c_ == other->c_; }
+    ZextExpression(std::shared_ptr<Expression> c) : Expression(e_zext), c_(c) {}
+
+
+    std::shared_ptr<Expression> c_;
+};
+
+
+class VariableExpression : public Expression{
+  public:
+    static std::shared_ptr<VariableExpression> create(Value *v) { return std::make_shared<VariableExpression>(v); }
+    virtual std::string print() { return v->print(); }
+    // we leverage the fact that constants in lightIR have unique addresses
+    bool equiv(const VariableExpression *other) const { return v == other->v; }
+    VariableExpression(Value *v) : Expression(e_variable), v(v) {}
+
+    Value *v;  
 };
 
 class PhiExpression : public Expression {
@@ -107,7 +176,6 @@ class PhiExpression : public Expression {
     PhiExpression(std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs)
         : Expression(e_phi), lhs_(lhs), rhs_(rhs) {}
 
-  private:
     std::shared_ptr<Expression> lhs_, rhs_;
 };
 } // namespace GVNExpression
@@ -161,10 +229,13 @@ class GVN : public Pass {
     partitions transferFunction(Instruction *x, Value *e, partitions pin);
     std::shared_ptr<GVNExpression::PhiExpression> valuePhiFunc(std::shared_ptr<GVNExpression::Expression>,
                                                                const partitions &);
-    std::shared_ptr<GVNExpression::Expression> valueExpr(Instruction *instr);
+    std::shared_ptr<GVNExpression::Expression> valueExpr(Instruction *instr,Value *c, partitions pin);
     std::shared_ptr<GVNExpression::Expression> getVN(const partitions &pout,
                                                      std::shared_ptr<GVNExpression::Expression> ve);
-
+    bool extract(partitions pin, Value* target);
+    std::shared_ptr<GVNExpression::Expression> findexpr(partitions pin, Value* target);
+    bool findexp_insert(partitions pin, std::shared_ptr<GVNExpression::Expression> target, Value* x);
+    bool findvpf_insert(partitions pin, std::shared_ptr<GVNExpression::PhiExpression> target, Value* x);
     // replace cc members with leader
     void replace_cc_members();
 

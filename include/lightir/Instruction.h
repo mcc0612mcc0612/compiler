@@ -55,6 +55,7 @@ class Instruction : public User, public llvm::ilist_node<Instruction> {
     Module *get_module();
 
     OpID get_instr_type() const { return op_id_; }
+    unsigned get_num_ops() const {return num_ops_;}
     static std::string get_instr_op_name(OpID id) {
         switch (id) {
         case ret: return "ret"; break;

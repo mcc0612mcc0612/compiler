@@ -8,25 +8,13 @@
         "type": "tabs",
         "children": [
           {
-            "id": "58418c1db96a0c96",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Documentations/4.2-gvn/README.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "753e829d1aa23aba",
+            "id": "1bfc62867551e731",
             "type": "leaf",
             "pinned": true,
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Documentations/4.1-ssa/README.md",
+                "file": "Documentations/4.2-gvn/README.md",
                 "mode": "source",
                 "source": false
               },
@@ -34,12 +22,12 @@
             }
           },
           {
-            "id": "27360de4a8e45d81",
+            "id": "221c2b61f5febe06",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Documentations/common/LightIR.md",
+                "file": "Documentations/common/simple_cpp.md",
                 "mode": "source",
                 "source": false
               }
@@ -74,7 +62,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "store",
+                "query": "light",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -162,17 +150,17 @@
     "width": 200,
     "collapsed": true
   },
-  "active": "58418c1db96a0c96",
+  "active": "1bfc62867551e731",
   "lastOpenFiles": [
-    "Documentations/4.1-ssa/ssa.pdf",
-    "Documentations/1-parser/README.md",
+    "Documentations/common/simple_cpp.md",
+    "Documentations/4.2-gvn/README.md",
+    "Documentations/common/LightIR.md",
+    "Documentations/2-ir-gen-warmup/Documentations/common/LightIR.md",
     "Documentations/4.2-gvn/gvn.pdf",
     "Documentations/4.1-ssa/README.md",
-    "Documentations/4.2-gvn/README.md",
+    "Documentations/4.1-ssa/ssa.pdf",
+    "().md",
     "Documentations/3-ir-gen/README.md",
-    "Documentations/2-ir-gen-warmup/README.md",
-    "Documentations/2-ir-gen-warmup/Documentations/common/logging.md",
-    "Documentations/2-ir-gen-warmup/Documentations/common/simple_cpp.md",
-    "Documentations/2-ir-gen-warmup/Documentations/common/LightIR.md"
+    "Documentations/1-parser/README.md"
   ]
 }
